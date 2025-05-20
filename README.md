@@ -1,4 +1,4 @@
-# Homoeolog Expression Analysis
+# Homeolog Expression Analysis
 
 This repository contains an R script to generate histograms for analyzing homoeolog expression ratios across different tissues (Root, Stem, Leaf, Flower) for subgenomes H, St1, and St2.
 
