@@ -6,8 +6,8 @@ library(patchwork)
 library(viridis)
 library(ggrepel)
 
-# Confirm TPM mapping
-cat("Assuming TPM1 = H, TPM2 = St1, TPM3 = St2 for all tissues.\n")
+# TPM mapping
+cat("TPM1 = H, TPM2 = St1, TPM3 = St2 for all tissues.\n")
 cat("TPM1, TPM2, TPM3 are pre-averaged values across replicates for each subgenome.\n")
 
 # Data Loading and Preprocessing
@@ -152,7 +152,7 @@ generate_combined_histogram <- function(ratios_data, dominance_classification, s
   
   plot_data <- plot_data %>%
     left_join(dominance_data, by = c("GeneID", "Tissue")) %>%
-    filter(!is.na(Log2_Ratio) & !is.infinite(Log2_Ratio) & Log2_Ratio >= -20 & Log2_Ratio <= 20)
+    filter(!is.na(Log2_Ratio) & !is.infinite(Log2_Ratio) & Log2_Ratio >= -15 & Log2_Ratio <= 15)
   
   plot_data <- plot_data %>%
     mutate(
@@ -189,16 +189,21 @@ generate_combined_histogram <- function(ratios_data, dominance_classification, s
   x_label <- substitute(log[2] ~ (a/b), list(a = subA, b = subB))
   
   p <- ggplot(plot_data, aes(x = Log2_Ratio, fill = Bias)) +
-    geom_histogram(bins = 100, color = "black", size = 0.2, alpha = 0.7) +
+    geom_histogram(bins = 100, aes(color = after_stat(fill)), linewidth = 0.2, alpha = 0.7) +
     scale_fill_manual(values = setNames(
       c("#1f77b4", "#ff7f0e", "#808080"),
       c(paste0(subA, "-biased"), paste0(subB, "-biased"), "Unbiased")
     )) +
-    geom_vline(xintercept = c(-1, 1), linetype = "dashed", color = "red", size = 1) +
+    scale_color_manual(values = setNames(
+      c("#1f77b4", "#ff7f0e", "#808080"),
+      c(paste0(subA, "-biased"), paste0(subB, "-biased"), "Unbiased")
+    )) +
+    guides(color = "none") +
+    geom_vline(xintercept = c(-1, 1), linetype = "dashed", color = "red", linewidth = 1) +
     geom_text(data = stats, aes(x = Inf, y = Y_Position, label = Label), 
               hjust = 1, vjust = 1, size = 3.5, color = "black", inherit.aes = FALSE) +
     facet_wrap(~ Tissue, ncol = 2) +
-    scale_x_continuous(breaks = seq(-20, 20, by = 5), limits = c(-20, 20)) +
+    scale_x_continuous(breaks = seq(-15, 15, by = 5), limits = c(-15, 15)) +
     scale_y_continuous(expand = expansion(mult = c(0, 0.3))) +
     theme_minimal(base_size = 12) +
     theme(
@@ -247,7 +252,7 @@ generate_avg_histogram <- function(ratios_data, dominance_classification, subA, 
   
   avg_data <- avg_data %>%
     left_join(dominance_across_tissues, by = "GeneID") %>%
-    filter(!is.na(Log2_Ratio) & !is.infinite(Log2_Ratio) & Log2_Ratio >= -20 & Log2_Ratio <= 20)
+    filter(!is.na(Log2_Ratio) & !is.infinite(Log2_Ratio) & Log2_Ratio >= -15 & Log2_Ratio <= 15)
   
   avg_data <- avg_data %>%
     mutate(
@@ -281,15 +286,20 @@ generate_avg_histogram <- function(ratios_data, dominance_classification, subA, 
   x_label <- substitute(log[2] ~ (a/b), list(a = subA, b = subB))
   
   p <- ggplot(avg_data, aes(x = Log2_Ratio, fill = Bias)) +
-    geom_histogram(bins = 100, color = "black", size = 0.2, alpha = 0.7) +
+    geom_histogram(bins = 100, aes(color = after_stat(fill)), linewidth = 0.2, alpha = 0.7) +
     scale_fill_manual(values = setNames(
       c("#1f77b4", "#ff7f0e", "#808080"),
       c(paste0(subA, "-biased"), paste0(subB, "-biased"), "Unbiased")
     )) +
-    geom_vline(xintercept = c(-1, 1), linetype = "dashed", color = "red", size = 1) +
+    scale_color_manual(values = setNames(
+      c("#1f77b4", "#ff7f0e", "#808080"),
+      c(paste0(subA, "-biased"), paste0(subB, "-biased"), "Unbiased")
+    )) +
+    guides(color = "none") +
+    geom_vline(xintercept = c(-1, 1), linetype = "dashed", color = "red", linewidth = 1) +
     geom_text(data = stats, aes(x = Inf, y = Y_Position, label = Label), 
               hjust = 1, vjust = 1, size = 3.5, color = "black", inherit.aes = FALSE) +
-    scale_x_continuous(breaks = seq(-20, 20, by = 5), limits = c(-20, 20)) +
+    scale_x_continuous(breaks = seq(-15, 15, by = 5), limits = c(-15, 15)) +
     scale_y_continuous(expand = expansion(mult = c(0, 0.3))) +
     theme_minimal(base_size = 12) +
     theme(
@@ -298,6 +308,8 @@ generate_avg_histogram <- function(ratios_data, dominance_classification, subA, 
       axis.text = element_text(color = "black", size = 10, face = "bold"),
       axis.title = element_text(size = 12, face = "bold"),
       plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),
+      strip.text = element_text(size = 12, face = "bold"),
+      panel.spacing = unit(1, "lines"),
       legend.position = "right",
       legend.title = element_text(size = 10, face = "bold"),
       legend.text = element_text(size = 8)
